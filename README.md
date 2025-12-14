@@ -10,9 +10,9 @@ Open-source game resource archive extractor. Analyze and extract contents from .
 ## Features
 
 - 🎮 Support for multiple game archive formats
-  - Unreal Engine 3/4/5 (fully support in `v1.2-stable`)
+  - Unreal Engine 3/4/5 (fully supported in `v1.2-stable`)
   - Source Engine
-  - Generic PAK archives (fully support in `v1.2-stable`)
+  - Generic PAK archives (fully supported in `v1.2-stable`)
 - ⚡ Fast and lightweight
 
 ## Supported Formats
@@ -26,8 +26,18 @@ Open-source game resource archive extractor. Analyze and extract contents from .
 
 ## Requirements
 
-- C++17 compiler (MSVC 2019+, GCC 8+, Clang 8+)
-- CMake 3.15+
+- *Windows 10/11*
+- *C++17 compiler* (MSVC 2019+, GCC 8+, Clang 8+)
+- *CMake 3.15+*
+
+## Build on Windows
+
+```
+> git clone https://github.com/mxtherfxcker/unPAKer.git
+> cd unPAKer && mkdir build && cd build
+> cmake .. -G "Visual Studio 17 2022" -A x64
+> cmake --build . --config Release
+```
 
 ## Roadmap
 

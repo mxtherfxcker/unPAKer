@@ -47,7 +47,7 @@ Open-source game resource archive extractor. Analyze and extract contents from .
 - [x] UE 3 `.pak` support
 - [x] Search files and dir's
 - [ ] Preview content for:
-	- [x] Text files
+	- [x] Text files (`.vpk` only yet)
 	- [ ] Audio files
 	- [ ] Models and textures (coming in `v2.1-stable`)
 	- [ ] Other supported files (coming in `v2.5-stable`)

@@ -54,7 +54,7 @@ For enable **debugging** in the console and log file:
 ### v1-dev1 (*Dec 20*)
 
 - [x] `.vpk` archives support
-- [x] UE 3 `.pak` support
+- [ ] UE 3 `.pak` support
 - [ ] Preview content for:
 	- [x] Text files (`.vpk` only yet)
 	- [ ] Audio files

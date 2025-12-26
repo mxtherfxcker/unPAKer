@@ -1,5 +1,5 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #pragma once
@@ -36,6 +36,17 @@ enum class LogLevel {
     SUCCESS = 4
 };
 
+enum class ConsoleColor {
+    DEFAULT = 7,    // White
+    BLUE = 9,       // Bright Blue
+    GREEN = 10,     // Bright Green
+    CYAN = 11,      // Bright Cyan
+    RED = 12,       // Bright Red
+    MAGENTA = 13,   // Bright Magenta
+    YELLOW = 14,    // Bright Yellow
+    WHITE = 15      // Bright White
+};
+
 class Logger {
 public:
     static Logger& instance();
@@ -54,6 +65,8 @@ public:
     void shutdown();
 
     bool should_filter_debug(const std::string& message) const;
+    void set_colors_enabled(bool enabled) { colors_enabled_ = enabled; }
+    bool are_colors_enabled() const { return colors_enabled_; }
 
 private:
     Logger();
@@ -62,6 +75,7 @@ private:
     Logger& operator=(const Logger&) = delete;
 
     bool dev_mode_;
+    bool colors_enabled_;
     std::unique_ptr<std::ofstream> log_file_;
     std::mutex log_mutex_;
     fs::path log_file_path_;
@@ -71,6 +85,10 @@ private:
     fs::path get_log_file_path() const;
     void write_to_console(LogLevel level, const std::string& message);
     void write_to_file(LogLevel level, const std::string& message);
+    void set_console_color(ConsoleColor color);
+    void reset_console_color();
+    std::string get_ansi_color_code(LogLevel level) const;
+    ConsoleColor get_color_for_level(LogLevel level) const;
 };
 
 #ifdef _DEBUG

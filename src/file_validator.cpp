@@ -1,8 +1,9 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #include "file_validator.hpp"
+#include "logger.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -23,7 +24,7 @@ ValidationResult FileValidator::validateArchive(const std::shared_ptr<DirectoryE
 
     result.total_files = static_cast<uint32_t>(all_files.size());
 
-    std::cout << "[INFO] Validating archive with " << result.total_files << " files..." << std::endl;
+    Logger::instance().info(std::string("Validating archive with ") + std::to_string(result.total_files) + " files...");
 
     std::vector<std::string> duplicates;
     result.duplicate_files = checkDuplicates(all_files, duplicates);
@@ -49,18 +50,18 @@ ValidationResult FileValidator::validateArchive(const std::shared_ptr<DirectoryE
     }
 
     if (result.error_messages.empty()) {
-        std::cout << "[INFO] Archive validation passed" << std::endl;
+        Logger::instance().success("Archive validation passed");
     } else {
-        std::cout << "[WARNING] Archive validation found " << result.error_messages.size() << " errors:" << std::endl;
+        Logger::instance().warning(std::string("Archive validation found ") + std::to_string(result.error_messages.size()) + " errors:");
         for (const auto& error : result.error_messages) {
-            std::cout << "  [ERROR] " << error << std::endl;
+            Logger::instance().error(error);
         }
     }
 
     if (!result.warnings.empty()) {
-        std::cout << "[INFO] Found " << result.warnings.size() << " warnings:" << std::endl;
+        Logger::instance().info(std::string("Found ") + std::to_string(result.warnings.size()) + " warnings:");
         for (const auto& warning : result.warnings) {
-            std::cout << "  [WARNING] " << warning << std::endl;
+            Logger::instance().warning(warning);
         }
     }
 

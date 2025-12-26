@@ -1,8 +1,9 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #include "generic_parser.hpp"
+#include "logger.hpp"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -10,14 +11,14 @@
 namespace unpaker::parsers {
 
 bool GenericParser::detect(const fs::path&) {
-    std::cout << "[INFO] Generic Parser: Using as fallback parser" << std::endl;
+    Logger::instance().info("Generic Parser: Using as fallback parser");
     return true;
 }
 
 bool GenericParser::parse(const fs::path&,
                                                  std::shared_ptr<DirectoryEntry>&,
                                                  uint32_t&) {
-    std::cout << "[ERROR] Generic: No specific parser matched this archive format" << std::endl;
+    Logger::instance().error("Generic: No specific parser matched this archive format");
     return false;
 }
 

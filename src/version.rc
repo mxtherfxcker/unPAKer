@@ -1,0 +1,36 @@
+#include <windows.h>
+
+STRINGTABLE
+BEGIN
+    1 "unPAKer v1-dev2"
+END
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3f
+ FILEFLAGS 0x0
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", "unPAKer Open Source Community"
+      VALUE "FileDescription", "Game Resource Archive Extractor - Open Source"
+      VALUE "FileVersion", "1.0.0.0"
+      VALUE "InternalName", "unPAKer"
+      VALUE "LegalCopyright", "Copyright (c) 2026 mxtherfxcker and contributors"
+      VALUE "OriginalFilename", "unPAKer.exe"
+      VALUE "ProductName", "unPAKer"
+      VALUE "ProductVersion", "1.0.0.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252
+  END
+END
+END

@@ -1,8 +1,9 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #include "pak_parser.hpp"
+#include "logger.hpp"
 #include "parsers/vpk_parser.hpp"
 #include "parsers/ue_parser.hpp"
 #include "parsers/generic_parser.hpp"
@@ -31,7 +32,7 @@ PakParser::PakParser(const fs::path& pak_path)
     if (fs::exists(pak_path)) {
         try {
             archive_size = fs::file_size(pak_path);
-            std::cout << "[INFO] Archive file size: " << (archive_size / (1024.0 * 1024.0)) << " MB" << std::endl;
+            Logger::instance().info(std::string("Archive file size: ") + std::to_string(static_cast<uint64_t>(archive_size / (1024.0 * 1024.0))) + std::string(" MB"));
         } catch (const fs::filesystem_error& e) {
             std::cerr << "[ERROR] Failed to get file size: " << e.what() << std::endl;
             archive_size = 0;
@@ -72,7 +73,7 @@ bool PakParser::detect_format() {
 }
 
 bool PakParser::parse() {
-    std::cout << "[INFO] Attempting to parse archive..." << std::endl;
+    Logger::instance().info("Attempting to parse archive...");
 
     root_directory = std::make_shared<DirectoryEntry>();
     if (!root_directory) {
@@ -85,12 +86,12 @@ bool PakParser::parse() {
     file_count = 0;
 
     if (!detect_format()) {
-        std::cout << "[WARNING] Could not detect format, trying generic parser..." << std::endl;
+        Logger::instance().warning("Could not detect format, trying generic parser...");
         detected_format = PakFormat::GENERIC;
         current_parser = std::make_shared<parsers::GenericParser>();
     }
 
-    std::cout << "[INFO] Detected format: " << get_format_info() << std::endl;
+    Logger::instance().info(std::string("Detected format: ") + get_format_info());
 
     bool parse_result = false;
 
@@ -102,12 +103,12 @@ bool PakParser::parse() {
     }
 
     if (parse_result) {
-        std::cout << "[SUCCESS] Archive parsed successfully" << std::endl;
+        Logger::instance().success("Archive parsed successfully");
         if (file_count == 0) {
-            std::cout << "[WARNING] No entries found. This might be a file list or metadata file" << std::endl;
+            Logger::instance().warning("No entries found. This might be a file list or metadata file");
         }
     } else {
-        std::cout << "[ERROR] Failed to parse archive" << std::endl;
+        Logger::instance().error("Failed to parse archive");
     }
 
     return parse_result;

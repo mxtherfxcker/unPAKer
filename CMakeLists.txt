@@ -52,11 +52,11 @@ target_compile_options(unpaker_gui PRIVATE
 
 add_executable(unPAKer
     src/main.cpp
-    unPAKer.rc
+    src/version.rc
 )
 
 if(MSVC)
-    set_source_files_properties(unPAKer.rc PROPERTIES LANGUAGE RC)
+    set_source_files_properties(src/version.rc PROPERTIES LANGUAGE RC)
 endif()
 
 target_link_libraries(unPAKer PRIVATE

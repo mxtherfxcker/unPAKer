@@ -1,5 +1,5 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #define UNICODE
@@ -10,6 +10,8 @@
 #include "file_validator.hpp"
 #include "config.hpp"
 #include "logger.hpp"
+
+using unpaker::Logger;
 #include <commctrl.h>
 #include <shlwapi.h>
 #include <winhttp.h>
@@ -111,7 +113,7 @@ bool GuiManager::initialize(int width, int height, const std::string& title) {
         WS_EX_LEFT,
         L"unPAKerWindowClass",
         wide_title.c_str(),
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
         CW_USEDEFAULT, CW_USEDEFAULT,
         window_width, window_height,
         nullptr, nullptr,
@@ -145,7 +147,7 @@ bool GuiManager::initialize(int width, int height, const std::string& title) {
 
     SetWindowTextW(main_window, wide_title.c_str());
 
-    std::cout << "[INFO] GUI initialized successfully" << std::endl;
+    Logger::instance().info("GUI initialized successfully");
     return true;
 }
 
@@ -197,7 +199,7 @@ void GuiManager::create_controls() {
 
     tree_view = CreateWindowEx(
         WS_EX_CLIENTEDGE, WC_TREEVIEW, L"",
-        WS_VISIBLE | WS_CHILD | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS,
+        WS_VISIBLE | WS_CHILD | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS | WS_CLIPCHILDREN,
         10, toolbar_height + 10, 400, window_height - toolbar_height - 60,
         main_window, nullptr, GetModuleHandle(nullptr), nullptr
     );
@@ -316,6 +318,10 @@ LRESULT GuiManager::handle_message(UINT msg, WPARAM wparam, LPARAM lparam) {
                         }
                     }
                 }
+            } else if (hdr->hwndFrom == tree_view && hdr->code == TVN_ITEMEXPANDED) {
+                // Перерисуем TreeView после раскрытия/закрытия элемента
+                InvalidateRect(tree_view, nullptr, FALSE);
+                RedrawWindow(tree_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
             }
             return 0;
         }
@@ -338,16 +344,20 @@ LRESULT GuiManager::handle_message(UINT msg, WPARAM wparam, LPARAM lparam) {
 
             if (tree_view) {
                 MoveWindow(tree_view, 10, 50, 380, new_height - 70, TRUE);
+                InvalidateRect(tree_view, nullptr, FALSE);
             }
             if (info_text) {
                 MoveWindow(info_text, 400, 50, new_width - 410, new_height - 70, TRUE);
+                InvalidateRect(info_text, nullptr, FALSE);
             }
             if (status_bar) {
                 MoveWindow(status_bar, 0, new_height - 20, new_width, 20, TRUE);
+                InvalidateRect(status_bar, nullptr, FALSE);
             }
 
             window_width = new_width;
             window_height = new_height;
+            RedrawWindow(main_window, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
             return 0;
         }
 
@@ -432,9 +442,9 @@ void GuiManager::load_archive(const fs::path& pak_path) {
                                               << " invalid entries" << std::endl;
         }
 
-        std::cout << "[INFO] Archive loaded successfully: " << pak_path.string() << std::endl;
-        std::cout << "[INFO] Format: " << parser->get_format_info() << std::endl;
-        std::cout << "[INFO] Files: " << parser->get_file_count() << std::endl;
+        Logger::instance().success(std::string("Archive loaded successfully: ") + pak_path.string());
+        Logger::instance().info(std::string("Format: ") + parser->get_format_info());
+        Logger::instance().info(std::string("Files: ") + std::to_string(parser->get_file_count()));
 
         set_status_text("Archive loaded: " + std::to_string(parser->get_file_count()) + " files");
     } catch (const std::exception& e) {
@@ -519,6 +529,8 @@ void GuiManager::populate_tree_view() {
     }
 
     SendMessage(tree_view, WM_SETREDRAW, TRUE, 0);
+    InvalidateRect(tree_view, nullptr, TRUE);
+    RedrawWindow(tree_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
 }
 
 void GuiManager::display_archive_info() {
@@ -665,6 +677,7 @@ void GuiManager::preview_file(const std::shared_ptr<FileEntry>& file) {
             SendMessage(info_text, EM_SCROLLCARET, 0, 0);
 
             InvalidateRect(info_text, nullptr, TRUE);
+            RedrawWindow(info_text, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE);
             UpdateWindow(info_text);
             UpdateWindow(main_window);
 
@@ -725,7 +738,7 @@ void GuiManager::shutdown() {
 
     UnregisterClassW(L"unPAKerWindowClass", GetModuleHandle(nullptr));
     parser = nullptr;
-    std::cout << "[INFO] GUI shutdown complete" << std::endl;
+    Logger::instance().info("GUI shutdown complete");
 }
 
 void GuiManager::update() {
@@ -1134,7 +1147,7 @@ void GuiManager::check_for_updates() {
         set_status_text("You are using the latest version");
     } else {
         message = L"A new version is available!\n\n";
-        message += L"Current version: ";
+        message += L"Current version: v";
         std::wstring wCurrent(currentVersion.begin(), currentVersion.end());
         message += wCurrent;
         message += L"\nLatest version: ";

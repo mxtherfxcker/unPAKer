@@ -1,5 +1,5 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #define UNPAKER_MEMORY_TRACKING
@@ -32,7 +32,16 @@ int main(int argc, char* argv[]) {
 
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
-    setvbuf(stdout, nullptr, _IOFBF, 1024);
+    setvbuf(stdout, nullptr, _IOLBF, 1024);
+
+    // Enable virtual terminal processing for modern console color support
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut != INVALID_HANDLE_VALUE) {
+        DWORD dwMode = 0;
+        if (GetConsoleMode(hOut, &dwMode)) {
+            SetConsoleMode(hOut, dwMode);
+        }
+    }
 
     #ifdef _DEBUG
         bool dev_mode = true;
@@ -42,17 +51,16 @@ int main(int argc, char* argv[]) {
 
     unpaker::Logger::instance().initialize(dev_mode);
 
-    std::cout << "========================================" << std::endl;
-    std::cout << "unPAKer v" << UNPAKER_VERSION << std::endl;
-    std::cout << "Game Resource Archive Extractor" << std::endl;
-    std::cout << "Author: " << UNPAKER_AUTHOR << std::endl;
-    std::cout << "License: " << UNPAKER_LICENSE << std::endl;
-    std::cout << "========================================" << std::endl;
-    std::cout << std::endl;
+    unpaker::Logger::instance().info("========================================");
+    unpaker::Logger::instance().info(std::string("unPAKer v") + UNPAKER_VERSION);
+    unpaker::Logger::instance().info("Game Resource Archive Extractor");
+    unpaker::Logger::instance().info(std::string("Author: ") + UNPAKER_AUTHOR);
+    unpaker::Logger::instance().info(std::string("License: ") + UNPAKER_LICENSE);
+    unpaker::Logger::instance().info("========================================");
 
     auto& app_manager = unpaker::ApplicationManager::getInstance();
     if (!app_manager.acquireInstance("unPAKer_SingleInstance")) {
-        std::cerr << "[FATAL] Failed to acquire application instance" << std::endl;
+        unpaker::Logger::instance().error("Failed to acquire application instance");
         return 1;
     }
 
@@ -61,19 +69,19 @@ int main(int argc, char* argv[]) {
     unpaker::GuiManager gui;
 
     if (!gui.initialize(1200, 700, std::string("unPAKer v" UNPAKER_VERSION))) {
-        std::cerr << "[ERROR] Failed to initialize GUI" << std::endl;
+        unpaker::Logger::instance().error("Failed to initialize GUI");
         return 1;
     }
 
     if (argc > 1) {
         std::string pak_path = argv[1];
-        std::cout << "[INFO] Loading archive: " << pak_path << std::endl;
+        unpaker::Logger::instance().info(std::string("Loading archive: ") + pak_path);
         gui.load_archive(pak_path);
     }
 
-    std::cout << "[INFO] GUI initialized. Window is running..." << std::endl;
-    std::cout << "[INFO] Close window to exit." << std::endl;
-    std::cout << "========================================" << std::endl;
+    unpaker::Logger::instance().info("GUI initialized. Window is running...");
+    unpaker::Logger::instance().info("Close window to exit.");
+    unpaker::Logger::instance().info("========================================");
 
     while (!gui.should_close()) {
         gui.update();
@@ -82,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     gui.shutdown();
 
-    std::cout << "[SUCCESS] unPAKer closed successfully." << std::endl;
+    unpaker::Logger::instance().success("unPAKer closed successfully.");
 
     unpaker::unpaker_memory_checkpoint("Final");
 

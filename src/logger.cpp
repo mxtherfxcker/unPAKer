@@ -1,5 +1,5 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #include "logger.hpp"
@@ -12,6 +12,15 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+
+#define FOREGROUND_BLUE     0x0001
+#define FOREGROUND_GREEN    0x0002
+#define FOREGROUND_RED      0x0004
+#define FOREGROUND_INTENSITY 0x0008
+#define FOREGROUND_CYAN     (FOREGROUND_BLUE | FOREGROUND_GREEN)
+#define FOREGROUND_YELLOW   (FOREGROUND_RED | FOREGROUND_GREEN)
+#define FOREGROUND_WHITE    (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
+
 #ifdef ERROR
 #undef ERROR
 #endif
@@ -25,7 +34,8 @@ Logger& Logger::instance() {
 
 Logger::Logger()
     : dev_mode_(false),
-              log_file_(nullptr) {
+      colors_enabled_(true),
+      log_file_(nullptr) {
 }
 
 Logger::~Logger() {
@@ -36,6 +46,30 @@ void Logger::initialize(bool dev_mode) {
     std::lock_guard<std::mutex> lock(log_mutex_);
 
     dev_mode_ = dev_mode;
+
+    // Enable console colors for Windows 10+ via ANSI escape codes
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut != INVALID_HANDLE_VALUE) {
+        DWORD dwMode = 0;
+        if (GetConsoleMode(hOut, &dwMode)) {
+            // ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+            dwMode |= 0x0004;
+            if (!SetConsoleMode(hOut, dwMode)) {
+                // Fallback: disable ANSI if Windows doesn't support it
+                colors_enabled_ = true; // Keep trying with ANSI
+            }
+        }
+    }
+
+    // Also try to enable for stderr
+    HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
+    if (hErr != INVALID_HANDLE_VALUE) {
+        DWORD dwMode = 0;
+        if (GetConsoleMode(hErr, &dwMode)) {
+            dwMode |= 0x0004;
+            SetConsoleMode(hErr, dwMode);
+        }
+    }
 
     if (dev_mode_) {
         log_file_path_ = get_log_file_path();
@@ -176,7 +210,29 @@ fs::path Logger::get_log_file_path() const {
 
 void Logger::write_to_console(LogLevel level, const std::string& message) {
     std::string level_str = get_log_level_string(level);
-    std::cout << "[" << level_str << "] " << message << std::endl;
+    
+    // Set console color using Windows API
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    WORD color = FOREGROUND_WHITE;
+    
+    if (colors_enabled_ && hConsole != INVALID_HANDLE_VALUE) {
+        switch (level) {
+            case LogLevel::DEBUG:   color = FOREGROUND_CYAN; break;
+            case LogLevel::INFO:    color = FOREGROUND_BLUE; break;
+            case LogLevel::WARNING: color = FOREGROUND_YELLOW; break;
+            case LogLevel::ERROR:   color = FOREGROUND_RED | FOREGROUND_INTENSITY; break;
+            case LogLevel::SUCCESS: color = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+            default:                color = FOREGROUND_WHITE; break;
+        }
+        
+        SetConsoleTextAttribute(hConsole, color);
+        std::cout << "[" << level_str << "] " << message << std::endl;
+        std::cout.flush();
+        SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE);
+    } else {
+        std::cout << "[" << level_str << "] " << message << std::endl;
+        std::cout.flush();
+    }
 }
 
 void Logger::write_to_file(LogLevel level, const std::string& message) {
@@ -196,6 +252,31 @@ bool Logger::should_filter_debug(const std::string& message) const {
         return true;
     }
     return false;
+}
+
+void Logger::set_console_color(ConsoleColor color) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole != INVALID_HANDLE_VALUE) {
+        SetConsoleTextAttribute(hConsole, static_cast<WORD>(color));
+    }
+}
+
+void Logger::reset_console_color() {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole != INVALID_HANDLE_VALUE) {
+        SetConsoleTextAttribute(hConsole, static_cast<WORD>(ConsoleColor::WHITE));
+    }
+}
+
+std::string Logger::get_ansi_color_code(LogLevel level) const {
+    switch (level) {
+        case LogLevel::DEBUG:   return "\033[36m";  // Cyan
+        case LogLevel::INFO:    return "\033[34m";  // Blue
+        case LogLevel::WARNING: return "\033[33m";  // Yellow
+        case LogLevel::ERROR:   return "\033[31m";  // Red
+        case LogLevel::SUCCESS: return "\033[32m";  // Green
+        default:                return "\033[37m";  // White
+    }
 }
 
 } // namespace unpaker

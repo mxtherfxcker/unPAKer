@@ -1,5 +1,5 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #include "ue_parser.hpp"
@@ -20,12 +20,12 @@ bool UEParser::detect(const fs::path& archive_path) {
     file.read(magic, 4);
 
     if (std::memcmp(magic, "\x50\x61\x6B\x00", 4) == 0) {
-        std::cout << "[INFO] UE Parser: Detected Unreal Engine 3 format" << std::endl;
+        Logger::instance().info("UE Parser: Detected Unreal Engine 3 format");
         return true;
     }
 
     if (magic[0] == 'P' && magic[1] == 'A' && magic[2] == 'K') {
-        std::cout << "[INFO] UE Parser: Detected Unreal Engine 4/5 format" << std::endl;
+        Logger::instance().info("UE Parser: Detected Unreal Engine 4/5 format");
         return true;
     }
 
@@ -68,7 +68,7 @@ bool UEParser::parse(const fs::path& archive_path,
     char magic[4];
     std::fread(magic, 1, 4, file);
 
-    std::cout << "[INFO] UE: Parsing Unreal Engine PAK format" << std::endl;
+    Logger::instance().info("UE: Parsing Unreal Engine PAK format");
 
     uint32_t version;
     std::fread(&version, 4, 1, file);
@@ -81,7 +81,7 @@ bool UEParser::parse(const fs::path& archive_path,
     DEBUG_COUT("[DEBUG] UE: File size: " << file_size << " bytes" << std::endl);
 
     if (entry_count > 100000) {
-        std::cout << "[WARNING] UE: Suspicious entry count: " << entry_count << ", adjusting to 256" << std::endl;
+        Logger::instance().warning(std::string("UE: Suspicious entry count: ") + std::to_string(entry_count) + std::string(", adjusting to 256"));
         entry_count = 256;
     }
 
@@ -135,7 +135,7 @@ bool UEParser::parse(const fs::path& archive_path,
         }
     }
 
-    std::cout << "[INFO] UE: Successfully parsed " << file_count_local << " file entries" << std::endl;
+    Logger::instance().info(std::string("UE: Successfully parsed ") + std::to_string(file_count_local) + std::string(" file entries"));
 
     std::fclose(file);
     return file_count_local > 0;

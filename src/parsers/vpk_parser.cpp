@@ -1,5 +1,5 @@
 ﻿// unPAKer - Game Resource Archive Extractor
-// Copyright (c) 2025 mxtherfxcker and contributors
+// Copyright (c) 2026 mxtherfxcker and contributors
 // Licensed under MIT License
 
 #include "vpk_parser.hpp"
@@ -30,12 +30,12 @@ bool VpkParser::detect(const fs::path& archive_path) {
     LOG_DEBUG(oss.str());
 
     if (magic_int == 0x55aa1234) {
-        std::cout << "[INFO] VPK Parser: Detected VPK v2 archive format" << std::endl;
+        Logger::instance().info("VPK Parser: Detected VPK v2 archive format");
         return true;
     }
 
     if (magic_int == 0x465456) {
-        std::cout << "[INFO] VPK Parser: Detected VPK directory format" << std::endl;
+        Logger::instance().info("VPK Parser: Detected VPK directory format");
         return true;
     }
 
@@ -90,7 +90,7 @@ std::string VpkParser::read_cstring(std::ifstream& file) {
 bool VpkParser::parse_vpk_v2(std::ifstream& file,
                                                          std::shared_ptr<DirectoryEntry>& root,
                                                          uint32_t& file_count) {
-    std::cout << "[INFO] VPK: Parsing v2 archive format" << std::endl;
+    Logger::instance().info("VPK: Parsing v2 archive format");
 
     file.seekg(0, std::ios::end);
     uint64_t file_size = file.tellg();
@@ -102,7 +102,7 @@ bool VpkParser::parse_vpk_v2(std::ifstream& file,
     uint32_t tree_size = 0;
     file.read(reinterpret_cast<char*>(&tree_size), 4);
 
-    std::cout << "[INFO] VPK: Version=" << version << ", TreeSize=" << tree_size << std::endl;
+    Logger::instance().info(std::string("VPK: Version=") + std::to_string(version) + std::string(", TreeSize=") + std::to_string(tree_size));
 
     uint32_t tree_offset = 12;
     if (version == 2) {
@@ -350,7 +350,7 @@ bool VpkParser::parse_vpk_v2(std::ifstream& file,
         }
     }
 
-    std::cout << "[INFO] VPK: Parsed " << file_count_local << " file entries from v2 archive" << std::endl;
+    Logger::instance().info(std::string("VPK: Parsed ") + std::to_string(file_count_local) + std::string(" file entries from v2 archive"));
 
     build_directory_structure(root);
 
@@ -453,7 +453,7 @@ void VpkParser::build_directory_structure(std::shared_ptr<DirectoryEntry>& root)
 bool VpkParser::parse_vpk_dir(std::ifstream& file,
                                                               std::shared_ptr<DirectoryEntry>& root,
                                                               uint32_t& file_count) {
-    std::cout << "[INFO] VPK: Parsing directory file format" << std::endl;
+    Logger::instance().info("VPK: Parsing directory file format");
 
     file.seekg(0, std::ios::end);
     uint64_t file_size = file.tellg();

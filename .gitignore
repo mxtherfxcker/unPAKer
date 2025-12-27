@@ -80,13 +80,3 @@ Icon
 *.bak
 *.swp
 *~
-
-# Test files
-test_output/
-*.test
-
-# Manifest
-unPAKer.manifest
-
-# Resources
-unPAKer.rc

@@ -321,15 +321,27 @@ bool VpkParser::parse_vpk_v2(std::ifstream& file,
                         return false;
                     }
 
-                    entry->name = file_name + "." + ext_name;
+                    entry->name.reserve(file_name.length() + ext_name.length() + 1);
+                    entry->name = file_name;
+                    entry->name += '.';
+                    entry->name += ext_name;
+
                     entry->offset = entry_offset;
                     entry->size = entry_size;
                     entry->archive_index = archive_index;
 
                     if (dir_name != " " && !dir_name.empty()) {
-                        entry->path = dir_name + "/" + file_name + "." + ext_name;
+                        entry->path.reserve(dir_name.length() + file_name.length() + ext_name.length() + 2);
+                        entry->path = dir_name;
+                        entry->path += '/';
+                        entry->path += file_name;
+                        entry->path += '.';
+                        entry->path += ext_name;
                     } else {
-                        entry->path = file_name + "." + ext_name;
+                        entry->path.reserve(file_name.length() + ext_name.length() + 1);
+                        entry->path = file_name;
+                        entry->path += '.';
+                        entry->path += ext_name;
                     }
 
                     entry->is_directory = false;
@@ -396,7 +408,8 @@ void VpkParser::build_directory_structure(std::shared_ptr<DirectoryEntry>& root)
                     if (current_path.empty()) {
                         current_path = dir_name;
                     } else {
-                        current_path += "/" + dir_name;
+                        current_path += '/';
+                        current_path += dir_name;
                     }
 
                     if (dir_map.find(current_path) == dir_map.end()) {

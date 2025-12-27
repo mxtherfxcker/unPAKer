@@ -47,21 +47,17 @@ void Logger::initialize(bool dev_mode) {
 
     dev_mode_ = dev_mode;
 
-    // Enable console colors for Windows 10+ via ANSI escape codes
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hOut != INVALID_HANDLE_VALUE) {
         DWORD dwMode = 0;
         if (GetConsoleMode(hOut, &dwMode)) {
-            // ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
             dwMode |= 0x0004;
             if (!SetConsoleMode(hOut, dwMode)) {
-                // Fallback: disable ANSI if Windows doesn't support it
                 colors_enabled_ = true; // Keep trying with ANSI
             }
         }
     }
 
-    // Also try to enable for stderr
     HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
     if (hErr != INVALID_HANDLE_VALUE) {
         DWORD dwMode = 0;
@@ -211,7 +207,6 @@ fs::path Logger::get_log_file_path() const {
 void Logger::write_to_console(LogLevel level, const std::string& message) {
     std::string level_str = get_log_level_string(level);
     
-    // Set console color using Windows API
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     WORD color = FOREGROUND_WHITE;
     

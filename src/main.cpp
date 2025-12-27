@@ -34,7 +34,6 @@ int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
-    // Enable virtual terminal processing for modern console color support
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hOut != INVALID_HANDLE_VALUE) {
         DWORD dwMode = 0;

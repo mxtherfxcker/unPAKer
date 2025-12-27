@@ -282,6 +282,16 @@ LRESULT GuiManager::handle_message(UINT msg, WPARAM wparam, LPARAM lparam) {
                 about_text += L"\n\nGame Resource Archive Extractor\n\nAuthor: mxtherfxcker\n\nLicense: MIT\n\nBuilt on ";
                 about_text += date_wide.data();
                 MessageBoxW(main_window, about_text.c_str(), L"About unPAKer", MB_OK | MB_ICONINFORMATION);
+                version_str.clear();
+                version_str.shrink_to_fit();
+                date_str.clear();
+                date_str.shrink_to_fit();
+                version_wide.clear();
+                version_wide.shrink_to_fit();
+                date_wide.clear();
+                date_wide.shrink_to_fit();
+                about_text.clear();
+                about_text.shrink_to_fit();
             } else if (cmd_id == 1004) { // Open button
                 handle_open_file();
             } else if (cmd_id == 1005) { // Check for updates
@@ -317,9 +327,10 @@ LRESULT GuiManager::handle_message(UINT msg, WPARAM wparam, LPARAM lparam) {
                             preview_file(found_file);
                         }
                     }
+                    selected_name.clear();
+                    selected_name.shrink_to_fit();
                 }
             } else if (hdr->hwndFrom == tree_view && hdr->code == TVN_ITEMEXPANDED) {
-                // Перерисуем TreeView после раскрытия/закрытия элемента
                 InvalidateRect(tree_view, nullptr, FALSE);
                 RedrawWindow(tree_view, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
             }
@@ -392,6 +403,8 @@ void GuiManager::handle_open_file() {
         std::string path(size_needed, 0);
         WideCharToMultiByte(CP_UTF8, 0, &filename[0], (int)wcslen(filename), &path[0], size_needed, NULL, NULL);
         load_archive(path);
+        path.clear();
+        path.shrink_to_fit();
     }
 }
 
@@ -413,10 +426,13 @@ void GuiManager::load_archive(const fs::path& pak_path) {
     try {
         parser = std::make_shared<PakParser>(pak_path);
         if (!parser || !parser->parse()) {
-            std::cerr << "[ERROR] Failed to parse archive: " << pak_path.string() << std::endl;
+            std::string error_msg = "[ERROR] Failed to parse archive: " + pak_path.string();
+            std::cerr << error_msg << std::endl;
             MessageBoxW(main_window, L"Failed to parse archive!", L"Error", MB_OK | MB_ICONERROR);
             parser = nullptr;
             is_loading = false;
+            error_msg.clear();
+            error_msg.shrink_to_fit();
             set_status_text("Ready");
             return;
         }
@@ -446,7 +462,11 @@ void GuiManager::load_archive(const fs::path& pak_path) {
         Logger::instance().info(std::string("Format: ") + parser->get_format_info());
         Logger::instance().info(std::string("Files: ") + std::to_string(parser->get_file_count()));
 
-        set_status_text("Archive loaded: " + std::to_string(parser->get_file_count()) + " files");
+        char status_buffer[256];
+        snprintf(status_buffer, sizeof(status_buffer), "Archive loaded: %u files", parser->get_file_count());
+        set_status_text(status_buffer);
+        wide_path.clear();
+        wide_path.shrink_to_fit();
     } catch (const std::exception& e) {
         std::cerr << "[ERROR] Exception while loading archive: " << e.what() << std::endl;
         MessageBoxA(main_window, e.what(), "Error", MB_OK | MB_ICONERROR);
@@ -476,12 +496,16 @@ void GuiManager::populate_tree_view() {
         tvinsert.hInsertAfter = TVI_LAST;
         tvinsert.item.mask = TVIF_TEXT;
 
-        std::string root_name = root->name.empty() ? "Archive" : root->name;
-        int root_len = MultiByteToWideChar(CP_UTF8, 0, root_name.c_str(), -1, NULL, 0);
-        std::vector<wchar_t> root_wide(root_len);
-        MultiByteToWideChar(CP_UTF8, 0, root_name.c_str(), -1, root_wide.data(), root_len);
+        static std::vector<wchar_t> wide_buffer(MAX_PATH * 2);
 
-        tvinsert.item.pszText = root_wide.data();
+        const char* root_name = root->name.empty() ? "Archive" : root->name.c_str();
+        int root_len = MultiByteToWideChar(CP_UTF8, 0, root_name, -1, NULL, 0);
+        if (root_len > (int)wide_buffer.size()) {
+            wide_buffer.resize(root_len * 2);
+        }
+        MultiByteToWideChar(CP_UTF8, 0, root_name, -1, wide_buffer.data(), root_len);
+
+        tvinsert.item.pszText = wide_buffer.data();
         HTREEITEM root_item = TreeView_InsertItem(tree_view, &tvinsert);
 
         DEBUG_COUT("[DEBUG] TreeView: Created root item: " << root_name << std::endl);
@@ -494,25 +518,30 @@ void GuiManager::populate_tree_view() {
                 for (const auto& file : dir->files) {
                     if (!file) continue;
 
-                    std::string file_display = file->name;
-                    int file_len = MultiByteToWideChar(CP_UTF8, 0, file_display.c_str(), -1, NULL, 0);
-                    std::vector<wchar_t> file_wide(file_len);
-                    MultiByteToWideChar(CP_UTF8, 0, file_display.c_str(), -1, file_wide.data(), file_len);
+                    const char* file_name = file->name.c_str();
+                    int file_len = MultiByteToWideChar(CP_UTF8, 0, file_name, -1, NULL, 0);
+                    if (file_len > (int)wide_buffer.size()) {
+                        wide_buffer.resize(file_len * 2);
+                    }
+                    MultiByteToWideChar(CP_UTF8, 0, file_name, -1, wide_buffer.data(), file_len);
 
                     tvinsert.hParent = parent_item;
-                    tvinsert.item.pszText = file_wide.data();
+                    tvinsert.item.pszText = wide_buffer.data();
                     TreeView_InsertItem(tree_view, &tvinsert);
                 }
 
                 for (const auto& subdir : dir->subdirectories) {
                     if (!subdir) continue;
 
-                    int dir_len = MultiByteToWideChar(CP_UTF8, 0, subdir->name.c_str(), -1, NULL, 0);
-                    std::vector<wchar_t> dir_wide(dir_len);
-                    MultiByteToWideChar(CP_UTF8, 0, subdir->name.c_str(), -1, dir_wide.data(), dir_len);
+                    const char* dir_name = subdir->name.c_str();
+                    int dir_len = MultiByteToWideChar(CP_UTF8, 0, dir_name, -1, NULL, 0);
+                    if (dir_len > (int)wide_buffer.size()) {
+                        wide_buffer.resize(dir_len * 2);
+                    }
+                    MultiByteToWideChar(CP_UTF8, 0, dir_name, -1, wide_buffer.data(), dir_len);
 
                     tvinsert.hParent = parent_item;
-                    tvinsert.item.pszText = dir_wide.data();
+                    tvinsert.item.pszText = wide_buffer.data();
                     HTREEITEM new_item = TreeView_InsertItem(tree_view, &tvinsert);
 
                     add_items(subdir, new_item);
@@ -547,32 +576,48 @@ void GuiManager::preview_file(const std::shared_ptr<FileEntry>& file) {
         return;
     }
 
-    std::string ext = file->name.substr(dot_pos + 1);
-    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-
-    std::vector<std::string> supported_exts = {"txt", "cfg", "ini", "md", "log", "conf", "config", "properties", "xml", "json"};
-
+    const char* ext_ptr = file->name.c_str() + dot_pos + 1;
+    
+    static constexpr const char* supported_exts[] = {"txt", "cfg", "ini", "md", "log", "conf", "config", "properties", "xml", "json"};
     bool is_supported = false;
-    for (const auto& supported : supported_exts) {
-        if (ext == supported) {
+    
+    for (const char* supported : supported_exts) {
+        const char* ext_check = ext_ptr;
+        const char* sup_check = supported;
+        while (*ext_check && *sup_check) {
+            char ext_lower = static_cast<char>(std::tolower(static_cast<unsigned char>(*ext_check)));
+            if (ext_lower != *sup_check) break;
+            ++ext_check;
+            ++sup_check;
+        }
+        if (*ext_check == '\0' && *sup_check == '\0') {
             is_supported = true;
             break;
         }
     }
 
     if (!is_supported) {
-        std::wstring msg = L"[Unsupported format: ." + std::wstring(ext.begin(), ext.end()) + L"] \n";
-        msg += L"Supported: .txt, .cfg, .ini, .md, .log, .conf, .config, .properties, .xml, .json";
-        SetWindowTextW(info_text, msg.c_str());
+        static wchar_t msg_buffer[512];
+        int len = swprintf_s(msg_buffer, sizeof(msg_buffer) / sizeof(wchar_t), L"[Unsupported format: .%hs]\n Supported: .txt, .cfg, .ini, .md, .log, .conf, .config, .properties, .xml, .json", ext_ptr);
+        if (len > 0) {
+            msg_buffer[len] = L'\0';
+            SetWindowTextW(info_text, msg_buffer);
+        } else {
+            SetWindowTextW(info_text, L"[Unsupported file format]");
+        }
         return;
     }
 
     const size_t MAX_PREVIEW_SIZE = 1024 * 1024; // 1MB
     if (file->size > MAX_PREVIEW_SIZE) {
-        std::wstring msg = L"[File too large for preview: ";
-        msg += std::to_wstring(file->size / 1024 / 1024);
-        msg += L" MB (max 1 MB)]";
-        SetWindowTextW(info_text, msg.c_str());
+        static wchar_t size_msg[256];
+        int len = swprintf_s(size_msg, sizeof(size_msg) / sizeof(wchar_t), L"[File too large for preview: %u MB (max 1 MB)]", static_cast<unsigned int>(file->size / 1024 / 1024));
+        if (len > 0) {
+            size_msg[len] = L'\0';
+            SetWindowTextW(info_text, size_msg);
+        } else {
+            SetWindowTextW(info_text, L"[File too large for preview]");
+        }
         return;
     }
 
@@ -584,6 +629,8 @@ void GuiManager::preview_file(const std::shared_ptr<FileEntry>& file) {
         }
 
         std::string content(file_data.begin(), file_data.end());
+        file_data.clear();
+        file_data.shrink_to_fit();
 
         DEBUG_COUT("[DEBUG] File content first 20 bytes (hex): ");
         #ifdef _DEBUG
@@ -701,7 +748,11 @@ void GuiManager::preview_file(const std::shared_ptr<FileEntry>& file) {
                 std::cerr << std::endl;
                 #endif
             }
+            wide_content.clear();
+            wide_content.shrink_to_fit();
         } else {
+            wide_content.clear();
+            wide_content.shrink_to_fit();
             SetLastError(0);
             DWORD error = GetLastError();
             if (error != 0) {
@@ -711,6 +762,8 @@ void GuiManager::preview_file(const std::shared_ptr<FileEntry>& file) {
             }
             SetWindowTextW(info_text, L"[Error: Could not convert file content to text]");
         }
+        content.clear();
+        content.shrink_to_fit();
     } catch (const std::exception& e) {
         std::cerr << "[ERROR] Exception in preview_file: " << e.what() << std::endl;
         SetWindowTextW(info_text, L"[Error reading file]");
@@ -724,6 +777,8 @@ void GuiManager::set_status_text(const std::string& text) {
             std::vector<wchar_t> wide_text(len);
             MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wide_text.data(), len);
             SendMessageW(status_bar, SB_SETTEXT, 0, (LPARAM)wide_text.data());
+            wide_text.clear();
+            wide_text.shrink_to_fit();
         } catch (const std::exception& e) {
             std::cerr << "[ERROR] Exception in set_status_text: " << e.what() << std::endl;
         }
@@ -734,6 +789,14 @@ void GuiManager::shutdown() {
     if (main_window) {
         DestroyWindow(main_window);
         main_window = nullptr;
+    }
+
+    if (hFont) {
+        HFONT stockFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+        if (hFont != stockFont) {
+            DeleteObject(hFont);
+        }
+        hFont = nullptr;
     }
 
     UnregisterClassW(L"unPAKerWindowClass", GetModuleHandle(nullptr));
@@ -814,6 +877,8 @@ void GuiManager::check_for_updates() {
         std::wstring error_msg = L"Failed to initialize network connection.\n\nError code: ";
         error_msg += std::to_wstring(GetLastError());
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -827,6 +892,8 @@ void GuiManager::check_for_updates() {
         std::wstring error_msg = L"Failed to connect to GitHub API.\n\nError code: ";
         error_msg += std::to_wstring(GetLastError());
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -848,6 +915,8 @@ void GuiManager::check_for_updates() {
         std::wstring error_msg = L"Failed to create API request.\n\nError code: ";
         error_msg += std::to_wstring(GetLastError());
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -862,6 +931,8 @@ void GuiManager::check_for_updates() {
         std::wstring error_msg = L"Failed to send API request.\n\nError code: ";
         error_msg += std::to_wstring(GetLastError());
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -874,6 +945,8 @@ void GuiManager::check_for_updates() {
         std::wstring error_msg = L"Failed to receive API response.\n\nError code: ";
         error_msg += std::to_wstring(GetLastError());
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -908,6 +981,8 @@ void GuiManager::check_for_updates() {
             std::string errorResponse(errorBuffer.begin(), errorBuffer.end());
             DEBUG_COUT("[DEBUG] Error response body: " << errorResponse.substr(0, 500) << std::endl);
         }
+        errorBuffer.clear();
+        errorBuffer.shrink_to_fit();
 
         WinHttpCloseHandle(hRequest);
         WinHttpCloseHandle(hConnect);
@@ -919,6 +994,8 @@ void GuiManager::check_for_updates() {
             error_msg += L"\n\nReleases not found. Check console for details.";
         }
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -954,10 +1031,14 @@ void GuiManager::check_for_updates() {
     if (buffer.empty()) {
         MessageBoxW(main_window, L"Failed to read response from GitHub API.", L"Update Check Failed", MB_OK | MB_ICONERROR);
         set_status_text("Update check failed");
+        buffer.clear();
+        buffer.shrink_to_fit();
         return;
     }
 
     std::string jsonResponse(buffer.begin(), buffer.end());
+    buffer.clear();
+    buffer.shrink_to_fit();
     std::string latestVersion;
 
     std::string debugPreview = jsonResponse.substr(0, (jsonResponse.length() < 500) ? jsonResponse.length() : 500);
@@ -1030,6 +1111,12 @@ void GuiManager::check_for_updates() {
         std::wstring wPreview(preview.begin(), preview.end());
         error_msg += wPreview;
         MessageBoxW(main_window, error_msg.c_str(), L"Update Check Failed", MB_OK | MB_ICONERROR);
+        error_msg.clear();
+        error_msg.shrink_to_fit();
+        preview.clear();
+        preview.shrink_to_fit();
+        wPreview.clear();
+        wPreview.shrink_to_fit();
         set_status_text("Update check failed");
         return;
     }
@@ -1145,6 +1232,8 @@ void GuiManager::check_for_updates() {
         title = L"Update Check";
         icon = MB_OK | MB_ICONINFORMATION;
         set_status_text("You are using the latest version");
+        currentVersion.clear();
+        currentVersion.shrink_to_fit();
     } else {
         message = L"A new version is available!\n\n";
         message += L"Current version: v";
@@ -1157,9 +1246,17 @@ void GuiManager::check_for_updates() {
         title = L"Update Available";
         icon = MB_OK | MB_ICONINFORMATION;
         set_status_text("New version available: " + latestVersion);
+        currentVersion.clear();
+        currentVersion.shrink_to_fit();
     }
 
     MessageBoxW(main_window, message.c_str(), title.c_str(), icon);
+    message.clear();
+    message.shrink_to_fit();
+    jsonResponse.clear();
+    jsonResponse.shrink_to_fit();
+    latestVersion.clear();
+    latestVersion.shrink_to_fit();
 }
 
 } // namespace unpaker

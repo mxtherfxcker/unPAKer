@@ -121,8 +121,8 @@ bool UEParser::parse(const fs::path& archive_path,
             return false;
         }
 
-        entry->name = std::string(path);
-        entry->path = entry->name;
+        entry->name = path;
+        entry->path = path;
         entry->offset = static_cast<uint32_t>(offset);
         entry->size = static_cast<uint32_t>(size);
         entry->archive_index = 0x7fff;

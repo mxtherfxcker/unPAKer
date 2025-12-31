@@ -19,7 +19,7 @@ Open-source game resource archive extractor. Analyze and extract contents from `
 
 | Format | Engine | Status |
 |--------|--------|--------|
-| UE3 PAK | Unreal Engine 3 | ❌ Coming in `v1-dev2` |
+| UE3 PAK | Unreal Engine 3 | ❌ Coming in `v1.2-stable` |
 | PCK | Godot 4.5+ | ❌ Coming in `v1.2-stable` |
 | UE4/5 PAK | Unreal Engine 4/5 | ❌ Coming in `v1.2-stable` |
 | VPK | Source Engine | ✅ Read |

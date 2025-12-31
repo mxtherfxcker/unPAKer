@@ -35,17 +35,17 @@ Open-source game resource archive extractor. Analyze and extract contents from `
 
 ```cmd
 
-> git clone https://github.com/mxtherfxcker/unPAKer.git
-> cd unPAKer && mkdir build && cd build
-> cmake .. -G "Visual Studio 17 2022" -A x64
-> cmake --build . --config Release
+git clone https://github.com/mxtherfxcker/unPAKer.git
+cd unPAKer && mkdir build && cd build
+cmake .. -G "Visual Studio 17 2022" -A x64
+cmake --build . --config Release
 
 ```
 For enable **debugging** in the console and log file:
 
 ```cmd
 
-> cmake --build . --config Debug
+cmake --build . --config Debug
 
 ```
 

@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-v1--dev1-blue.svg)](https://github.com/mxtherfxcker/unpaker/releases/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/mxtherfxcker/unPAKer/blob/master/LICENSE)
 [![Language](https://img.shields.io/badge/language-C%2B%2B17-red.svg)](https://web.archive.org/web/20171202203127/https://www.iso.org/standard/68564.html)
-[![Status](https://img.shields.io/badge/status-Development-orange.svg)]()
+[![Status](https://img.shields.io/badge/status-Freeze-blue.svg)]()
 
 Open-source game resource archive extractor. Analyze and extract contents from `.pak` archives used in various game engines.
 

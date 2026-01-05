@@ -1221,7 +1221,7 @@ void GuiManager::check_for_updates() {
     std::wstring title;
     UINT icon;
 
-    if (isUpToDate) {
+    if (!isUpToDate) {
         message = L"You are using the latest version.\n\n";
         message += L"Current version: ";
         std::wstring wCurrent(currentVersion.begin(), currentVersion.end());

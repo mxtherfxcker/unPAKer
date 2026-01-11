@@ -3,28 +3,33 @@
 // Licensed under MIT License
 
 #define UNPAKER_MEMORY_TRACKING
-#include "memory_tracker.hpp"
 #include "application_manager.hpp"
-#include "pak_parser.hpp"
-#include "gui_manager.hpp"
-#include "version.hpp"
-#include "logger.hpp"
 #include "config.hpp"
+#include "gui_manager.hpp"
+#include "logger.hpp"
+#include "memory_tracker.hpp"
+#include "pak_parser.hpp"
+#include "version.hpp"
+#include <clocale>
 #include <iostream>
 #include <string>
-#include <clocale>
 
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
 #include <windows.h>
 
-int main(int argc, char* argv[]) {
-    typedef BOOL (WINAPI* SetProcessDpiAwarenessContextFunc)(DPI_AWARENESS_CONTEXT);
+int main(int argc, char *argv[])
+{
+    typedef BOOL(WINAPI * SetProcessDpiAwarenessContextFunc)(DPI_AWARENESS_CONTEXT);
     HMODULE user32 = LoadLibraryW(L"user32.dll");
-    if (user32) {
-        auto SetProcessDpiAwarenessContextFunc_ptr = (SetProcessDpiAwarenessContextFunc)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
-        if (SetProcessDpiAwarenessContextFunc_ptr) {
+    if (user32)
+    {
+        auto SetProcessDpiAwarenessContextFunc_ptr =
+            (SetProcessDpiAwarenessContextFunc)GetProcAddress(user32,
+                                                              "SetProcessDpiAwarenessContext");
+        if (SetProcessDpiAwarenessContextFunc_ptr)
+        {
             SetProcessDpiAwarenessContextFunc_ptr(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
         }
         FreeLibrary(user32);
@@ -35,18 +40,20 @@ int main(int argc, char* argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
 
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hOut != INVALID_HANDLE_VALUE) {
+    if (hOut != INVALID_HANDLE_VALUE)
+    {
         DWORD dwMode = 0;
-        if (GetConsoleMode(hOut, &dwMode)) {
+        if (GetConsoleMode(hOut, &dwMode))
+        {
             SetConsoleMode(hOut, dwMode);
         }
     }
 
-    #ifdef _DEBUG
-        bool dev_mode = true;
-    #else
-        bool dev_mode = false;
-    #endif
+#ifdef _DEBUG
+    bool dev_mode = true;
+#else
+    bool dev_mode = false;
+#endif
 
     unpaker::Logger::instance().initialize(dev_mode);
 
@@ -57,8 +64,9 @@ int main(int argc, char* argv[]) {
     unpaker::Logger::instance().info(std::string("License: ") + UNPAKER_LICENSE);
     unpaker::Logger::instance().info("========================================");
 
-    auto& app_manager = unpaker::ApplicationManager::getInstance();
-    if (!app_manager.acquireInstance("unPAKer_SingleInstance")) {
+    auto &app_manager = unpaker::ApplicationManager::getInstance();
+    if (!app_manager.acquireInstance("unPAKer_SingleInstance"))
+    {
         unpaker::Logger::instance().error("Failed to acquire application instance");
         return 1;
     }
@@ -67,12 +75,14 @@ int main(int argc, char* argv[]) {
 
     unpaker::GuiManager gui;
 
-    if (!gui.initialize(1200, 700, std::string("unPAKer v" UNPAKER_VERSION))) {
+    if (!gui.initialize(1200, 700, std::string("unPAKer v" UNPAKER_VERSION)))
+    {
         unpaker::Logger::instance().error("Failed to initialize GUI");
         return 1;
     }
 
-    if (argc > 1) {
+    if (argc > 1)
+    {
         std::string pak_path = argv[1];
         unpaker::Logger::instance().info(std::string("Loading archive: ") + pak_path);
         gui.load_archive(pak_path);
@@ -82,7 +92,8 @@ int main(int argc, char* argv[]) {
     unpaker::Logger::instance().info("Close window to exit.");
     unpaker::Logger::instance().info("========================================");
 
-    while (!gui.should_close()) {
+    while (!gui.should_close())
+    {
         gui.update();
         gui.render();
     }

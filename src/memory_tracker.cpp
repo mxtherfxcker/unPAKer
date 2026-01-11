@@ -4,8 +4,9 @@
 
 #include "memory_tracker.hpp"
 
-namespace unpaker {
+namespace unpaker
+{
 
-MemoryStats g_memory_stats;
+    MemoryStats g_memory_stats;
 
 } // namespace unpaker

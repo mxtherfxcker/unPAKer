@@ -1,5 +1,5 @@
 Language: Cpp
-Standard: C++17
+Standard: Latest
 IndentWidth: 4
 UseTab: Never
 ColumnLimit: 100
@@ -16,4 +16,5 @@ AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortEnumerationsOnASingleLine: false
+AlignOperands: Align
+BreakBeforeBinaryOperators: None

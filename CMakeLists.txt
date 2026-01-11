@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(BUILD_CORE_ONLY "Build only core library (no GUI, for Linux CI)" OFF)
 
 add_library(unpaker_core
     src/pak_parser.cpp
@@ -29,54 +28,51 @@ target_compile_options(unpaker_core PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
 )
 
-if(NOT BUILD_CORE_ONLY)
-    add_library(unpaker_gui
-        src/gui_manager.cpp
-    )
+add_library(unpaker_gui
+    src/gui_manager.cpp
+)
 
-    target_include_directories(unpaker_gui PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-    )
+target_include_directories(unpaker_gui PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
-    target_link_libraries(unpaker_gui PUBLIC
-        unpaker_core
-        user32
-        gdi32
-        comctl32
-        shlwapi
-        winhttp
-    )
+target_link_libraries(unpaker_gui PUBLIC
+    unpaker_core
+    user32
+    gdi32
+    comctl32
+    shlwapi
+    winhttp
+)
 
-    target_compile_options(unpaker_gui PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W4>
-        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
-    )
+target_compile_options(unpaker_gui PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
+)
 
-    add_executable(unPAKer
-        src/main.cpp
-        src/version.rc
-    )
+add_executable(unPAKer
+    src/main.cpp
+    src/version.rc
+)
 
-    if(MSVC)
-        set_source_files_properties(src/version.rc PROPERTIES LANGUAGE RC)
-    endif()
-
-    target_link_libraries(unPAKer PRIVATE
-        unpaker_core
-        unpaker_gui
-    )
-
-    target_include_directories(unPAKer PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-    )
-
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT unPAKer)
-
-    install(TARGETS unPAKer DESTINATION bin)
-    install(TARGETS unpaker_gui DESTINATION lib)
+if(MSVC)
+    set_source_files_properties(src/version.rc PROPERTIES LANGUAGE RC)
 endif()
 
+target_link_libraries(unPAKer PRIVATE
+    unpaker_core
+    unpaker_gui
+)
+
+target_include_directories(unPAKer PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT unPAKer)
+
+install(TARGETS unPAKer DESTINATION bin)
 install(TARGETS unpaker_core DESTINATION lib)
+install(TARGETS unpaker_gui DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include/unpaker)
 
 

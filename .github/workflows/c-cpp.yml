@@ -2,22 +2,47 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
 
 jobs:
-  build:
-
+  format-check:
+    name: Check clang-format
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    
+    - name: Run clang-format
+      uses: jidicula/clang-format-action@v4.14.0
+      with:
+        clang-format-version: '18'
+        check-path: 'src'
+        
+    - name: Run clang-format on headers
+      uses: jidicula/clang-format-action@v4.14.0
+      with:
+        clang-format-version: '18'
+        check-path: 'include'
+
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    needs: format-check
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure CMake
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+    
+    - name: Build
+      run: cmake --build build --config Release
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: unPAKer-windows
+        path: build/Release/unPAKer.exe
+        if-no-files-found: warn

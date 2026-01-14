@@ -4,8 +4,9 @@
 
 #include "application_manager.hpp"
 
-namespace unpaker {
+namespace unpaker
+{
 
-std::atomic<bool> ApplicationManager::s_shutdown_requested{false};
+    std::atomic<bool> ApplicationManager::s_shutdown_requested{false};
 
 } // namespace unpaker

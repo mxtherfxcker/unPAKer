@@ -16,3 +16,5 @@ AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
+AlignOperands: Align
+BreakBeforeBinaryOperators: None

@@ -9,22 +9,20 @@ on:
 jobs:
   format-check:
     name: Check clang-format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Run clang-format
-      uses: jidicula/clang-format-action@v4.14.0
-      with:
-        clang-format-version: '18'
-        check-path: 'src'
-        
-    - name: Run clang-format on headers
-      uses: jidicula/clang-format-action@v4.14.0
-      with:
-        clang-format-version: '18'
-        check-path: 'include'
+    - name: Install clang-format
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-format-18
+    
+    - name: Check formatting
+      run: |
+        find src include -name '*.cpp' -o -name '*.hpp' | \
+          xargs clang-format-18 --dry-run --Werror
 
   build-windows:
     name: Build (Windows)

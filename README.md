@@ -51,7 +51,7 @@ cmake --build . --config Debug
 
 ## Roadmap
 
-### v1-dev1 (*Dec 20*)
+### v1-dev2 (*Jan 1*)
 
 - [x] `.vpk` archives support
 - [ ] UE 3 `.pak` support

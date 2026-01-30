@@ -33,10 +33,11 @@ namespace unpaker
         {
             try
             {
-                archive_size = fs::file_size(pak_path);
+                std::uintmax_t file_size_result = fs::file_size(pak_path);
+                archive_size = static_cast<uint64_t>(file_size_result);
                 Logger::instance().info(
                     std::string("Archive file size: ") +
-                    std::to_string(static_cast<uint64_t>(archive_size / (1024.0 * 1024.0))) +
+                    std::to_string(static_cast<double>(archive_size) / (1024.0 * 1024.0)) +
                     std::string(" MB"));
             }
             catch (const fs::filesystem_error &e)

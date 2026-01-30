@@ -182,15 +182,29 @@ namespace unpaker
             {
                 if (line.find("theme=") == 0)
                 {
-                    int theme_val = std::stoi(line.substr(6));
-                    if (theme_val >= 0 && theme_val <= 4)
+                    try
                     {
-                        current_theme = static_cast<ThemeType>(theme_val);
+                        int theme_val = std::stoi(line.substr(6));
+                        if (theme_val >= 0 && theme_val <= 4)
+                        {
+                            current_theme = static_cast<ThemeType>(theme_val);
+                        }
+                    }
+                    catch (const std::exception &)
+                    {
+                        std::cerr << "[WARNING] Invalid theme value in config" << std::endl;
                     }
                 }
                 else if (line.find("file_format=") == 0)
                 {
-                    last_file_format = std::stoul(line.substr(12));
+                    try
+                    {
+                        last_file_format = std::stoul(line.substr(12));
+                    }
+                    catch (const std::exception &)
+                    {
+                        std::cerr << "[WARNING] Invalid file_format value in config" << std::endl;
+                    }
                 }
                 else if (line.find("dev_mode=") == 0)
                 {

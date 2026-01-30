@@ -110,7 +110,8 @@ namespace unpaker
         return dup_count;
     }
 
-    bool FileValidator::validateFileEntry(const std::shared_ptr<FileEntry> &entry, uint64_t)
+    bool FileValidator::validateFileEntry(const std::shared_ptr<FileEntry> &entry,
+                                          uint64_t archive_size)
     {
         if (!entry)
             return false;
@@ -126,6 +127,18 @@ namespace unpaker
             std::cerr << "[WARNING] File path exceeds 1024 characters: " << entry->path.length()
                       << std::endl;
             return false;
+        }
+
+        if (!entry->is_directory)
+        {
+            uint64_t file_end = static_cast<uint64_t>(entry->offset) + entry->size;
+            if (file_end > archive_size)
+            {
+                std::cerr << "[WARNING] File entry extends beyond archive: offset=" << entry->offset
+                          << ", size=" << entry->size << ", archive_size=" << archive_size
+                          << std::endl;
+                return false;
+            }
         }
 
         for (size_t i = 0; i < entry->path.length(); ++i)

@@ -18,8 +18,8 @@ namespace unpaker
     struct FileEntry
     {
         std::string name;
-        uint32_t offset;
-        uint32_t size;
+        uint64_t offset;
+        uint64_t size;
         std::string path;
         bool is_directory;
         uint32_t archive_index;

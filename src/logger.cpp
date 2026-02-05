@@ -275,7 +275,8 @@ namespace unpaker
             SetConsoleTextAttribute(hConsole, color);
             std::cout << "[" << level_str << "] " << message << std::endl;
             std::cout.flush();
-            SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE);
+            // Do not reset text color to white for next message.
+            // SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE);
         }
         else
         {

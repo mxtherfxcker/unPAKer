@@ -18,16 +18,19 @@ namespace unpaker
         : archive_path(pak_path), detected_format(PakFormat::UNKNOWN), file_count(0),
           archive_size(0), current_parser(nullptr)
     {
-        root_directory = std::make_shared<DirectoryEntry>();
-        if (!root_directory)
+        try
         {
-            std::cerr << "[ERROR] Failed to allocate memory for root directory" << std::endl;
-            return;
+            root_directory = std::make_shared<DirectoryEntry>();
+            root_directory->name = "/";
+            root_directory->is_directory = true;
+            root_directory->parent = nullptr;
         }
-
-        root_directory->name = "/";
-        root_directory->is_directory = true;
-        root_directory->parent = nullptr;
+        catch (const std::bad_alloc &e)
+        {
+            std::cerr << "[ERROR] Failed to allocate memory for root directory: " << e.what()
+                      << std::endl;
+            throw;
+        }
 
         if (fs::exists(pak_path))
         {
@@ -93,16 +96,19 @@ namespace unpaker
     {
         Logger::instance().info("Attempting to parse archive...");
 
-        root_directory = std::make_shared<DirectoryEntry>();
-        if (!root_directory)
+        try
         {
-            std::cerr << "[ERROR] Failed to allocate root directory" << std::endl;
+            root_directory = std::make_shared<DirectoryEntry>();
+            root_directory->name = archive_path.filename().string();
+            root_directory->is_directory = true;
+            root_directory->parent = nullptr;
+            file_count = 0;
+        }
+        catch (const std::bad_alloc &e)
+        {
+            std::cerr << "[ERROR] Failed to allocate root directory: " << e.what() << std::endl;
             return false;
         }
-        root_directory->name = archive_path.filename().string();
-        root_directory->is_directory = true;
-        root_directory->parent = nullptr;
-        file_count = 0;
 
         if (!detect_format())
         {

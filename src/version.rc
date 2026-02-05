@@ -2,7 +2,7 @@
 
 STRINGTABLE
 BEGIN
-    1 "unPAKer v1-dev2"
+    1 "unPAKer v1-dev3"
 END
 
 VS_VERSION_INFO VERSIONINFO
@@ -19,8 +19,7 @@ BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName", "unPAKer Open Source Community"
-      VALUE "FileDescription", "Game Resource Archive Extractor - Open Source"
-      VALUE "FileVersion", "1.0.0.0"
+      VALUE "FileDescription", "Game Resource Archive Extractor"
       VALUE "InternalName", "unPAKer"
       VALUE "LegalCopyright", "Copyright (c) 2026 mxtherfxcker and contributors"
       VALUE "OriginalFilename", "unPAKer.exe"

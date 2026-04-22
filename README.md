@@ -1,6 +1,6 @@
 # unPAKer
 
-[![Version](https://img.shields.io/badge/version-v1--dev1-blue.svg)](https://github.com/mxtherfxcker/unpaker/releases/)
+[![Version](https://img.shields.io/badge/version-v1--dev2-blue.svg)](https://github.com/mxtherfxcker/unpaker/releases/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/mxtherfxcker/unPAKer/blob/master/LICENSE)
 [![Language](https://img.shields.io/badge/language-C%2B%2B17-red.svg)](https://web.archive.org/web/20171202203127/https://www.iso.org/standard/68564.html)
 [![Status](https://img.shields.io/badge/status-Freeze-blue.svg)]()
@@ -29,7 +29,7 @@ Open-source game resource archive extractor. Analyze and extract contents from `
 
 - *Windows 10/11*
 - *C++17 compiler* (MSVC 2019+, GCC 8+, Clang 8+)
-- *CMake 3.21+*
+- *CMake 3.22+*
 
 ## Build on Windows
 

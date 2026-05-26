@@ -4,8 +4,8 @@ project(unPAKer VERSION 0.0.2 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(BUILD_CORE_ONLY "Build only core library (no GUI, for Linux CI)" OFF)
+option(BUILD_CORE_ONLY "Build only core library" OFF)
+option(ENABLE_CONSOLE "Enable console window for debugging" ON)
 
 add_library(unpaker_core
     src/pak_parser.cpp
@@ -69,6 +69,18 @@ if(NOT BUILD_CORE_ONLY)
     target_include_directories(unPAKer PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
     )
+
+    if(NOT ENABLE_CONSOLE)
+        if(MSVC)
+            set_target_properties(unPAKer PROPERTIES
+                LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
+            )
+        elseif(MINGW)
+            set_target_properties(unPAKer PROPERTIES
+                LINK_FLAGS "-mwindows"
+            )
+        endif()
+    endif()
 
     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT unPAKer)
 

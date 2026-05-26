@@ -50,6 +50,9 @@ namespace unpaker
         HWND status_bar;
 
         HFONT hFont;
+        HFONT hBoldFont;
+        HBRUSH hBackgroundBrush;
+        HBRUSH hControlBrush;
 
         int window_width;
         int window_height;

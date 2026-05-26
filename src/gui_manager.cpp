@@ -18,6 +18,7 @@ using unpaker::Logger;
 #include <functional>
 #include <iostream>
 #include <regex>
+#include <richedit.h>
 #include <shlwapi.h>
 #include <sstream>
 #include <vector>
@@ -60,8 +61,9 @@ namespace unpaker
 
     GuiManager::GuiManager()
         : main_window(nullptr), tree_view(nullptr), info_text(nullptr), file_path_text(nullptr),
-          open_button(nullptr), status_bar(nullptr), hFont(nullptr), window_width(0),
-          window_height(0), window_title(""), is_running(true), is_loading(false), parser(nullptr)
+          open_button(nullptr), status_bar(nullptr), hFont(nullptr), hBoldFont(nullptr),
+          hBackgroundBrush(nullptr), hControlBrush(nullptr), window_width(0), window_height(0),
+          window_title(""), is_running(true), is_loading(false), parser(nullptr)
     {
         g_gui_instance = this;
     }
@@ -96,7 +98,8 @@ namespace unpaker
         wc.hInstance = GetModuleHandle(nullptr);
         wc.hIcon = LoadIconW(GetModuleHandle(nullptr), MAKEINTRESOURCEW(101));
         wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
-        wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+        hBackgroundBrush = CreateSolidBrush(RGB(240, 240, 240));
+        wc.hbrBackground = hBackgroundBrush;
         wc.lpszMenuName = nullptr;
         wc.lpszClassName = L"unPAKerWindowClass";
         wc.hIconSm = LoadIconW(GetModuleHandle(nullptr), MAKEINTRESOURCEW(101));
@@ -151,6 +154,8 @@ namespace unpaker
         if (!main_window)
             return;
 
+        hControlBrush = CreateSolidBrush(RGB(255, 255, 255));
+
         HMENU menu_bar = CreateMenu();
         HMENU file_menu = CreateMenu();
 
@@ -173,54 +178,74 @@ namespace unpaker
             SetWindowTextW(main_window, wide_title.c_str());
         }
 
-        int toolbar_height = 40;
-        HWND label =
-            CreateWindowEx(0, L"STATIC", L"Archive path:", WS_VISIBLE | WS_CHILD | SS_LEFT, 10, 10,
-                           85, 20, main_window, nullptr, GetModuleHandle(nullptr), nullptr);
+        int toolbar_height = 50;
+        int padding = 15;
+        
+        HWND label = CreateWindowEx(
+            0, L"STATIC", L"Archive path:", 
+            WS_VISIBLE | WS_CHILD | SS_LEFT, 
+            padding, 15, 100, 25, 
+            main_window, nullptr, GetModuleHandle(nullptr), nullptr);
 
         file_path_text = CreateWindowEx(
-            WS_EX_CLIENTEDGE, L"EDIT", L"", WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL | ES_READONLY,
-            100, 10, 400, 20, main_window, nullptr, GetModuleHandle(nullptr), nullptr);
+            WS_EX_CLIENTEDGE, L"EDIT", L"", 
+            WS_VISIBLE | WS_CHILD | ES_AUTOHSCROLL | ES_READONLY,
+            padding + 105, 15, 450, 25, 
+            main_window, nullptr, GetModuleHandle(nullptr), nullptr);
 
-        open_button =
-            CreateWindowEx(0, L"BUTTON", L"Open...", WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON, 510, 10,
-                           80, 20, main_window, (HMENU)1004, GetModuleHandle(nullptr), nullptr);
+        open_button = CreateWindowEx(
+            0, L"BUTTON", L"Open Archive", 
+            WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
+            padding + 565, 15, 120, 25, 
+            main_window, (HMENU)1004, GetModuleHandle(nullptr), nullptr);
 
-        tree_view =
-            CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, L"",
-                           WS_VISIBLE | WS_CHILD | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS |
-                               WS_CLIPCHILDREN,
-                           10, toolbar_height + 10, 400, window_height - toolbar_height - 60,
-                           main_window, nullptr, GetModuleHandle(nullptr), nullptr);
+        tree_view = CreateWindowEx(
+            WS_EX_CLIENTEDGE, WC_TREEVIEW, L"",
+            WS_VISIBLE | WS_CHILD | TVS_HASLINES | TVS_LINESATROOT | TVS_HASBUTTONS |
+                WS_CLIPCHILDREN | TVS_FULLROWSELECT,
+            padding, toolbar_height + padding, 450, window_height - toolbar_height - 60,
+            main_window, nullptr, GetModuleHandle(nullptr), nullptr);
 
-        info_text = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"",
-                                   WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY | WS_VSCROLL,
-                                   420, toolbar_height + 10, window_width - 430,
-                                   window_height - toolbar_height - 60, main_window, nullptr,
-                                   GetModuleHandle(nullptr), nullptr);
+        info_text = CreateWindowEx(
+            WS_EX_CLIENTEDGE, L"EDIT", L"",
+            WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL | ES_AUTOVSCROLL,
+            padding + 460, toolbar_height + padding, window_width - 490,
+            window_height - toolbar_height - 60, 
+            main_window, nullptr, GetModuleHandle(nullptr), nullptr);
 
-        status_bar = CreateWindowEx(0, STATUSCLASSNAME, L"Ready", WS_VISIBLE | WS_CHILD, 0,
-                                    window_height - 20, window_width, 20, main_window, nullptr,
-                                    GetModuleHandle(nullptr), nullptr);
+        SendMessage(info_text, EM_SETREADONLY, TRUE, 0);
 
-        hFont = CreateFontW(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-                            DEFAULT_CHARSET, // nCharSet
-                            OUT_DEFAULT_PRECIS,
-                            CLIP_DEFAULT_PRECIS, // nClipPrecision
-                            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+        status_bar = CreateWindowEx(
+            0, STATUSCLASSNAME, L"Ready", 
+            WS_VISIBLE | WS_CHILD, 
+            0, window_height - 25, window_width, 25, 
+            main_window, nullptr, GetModuleHandle(nullptr), nullptr);
+
+        hFont = CreateFontW(
+            16, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+
+        hBoldFont = CreateFontW(
+            16, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
+            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+            CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
         if (!hFont)
         {
             hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
         }
+        if (!hBoldFont)
+        {
+            hBoldFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+        }
 
         SendMessage(tree_view, WM_SETFONT, (WPARAM)hFont, TRUE);
         SendMessage(info_text, WM_SETFONT, (WPARAM)hFont, TRUE);
         SendMessage(file_path_text, WM_SETFONT, (WPARAM)hFont, TRUE);
-        SendMessage(label, WM_SETFONT, (WPARAM)hFont, TRUE);
+        SendMessage(label, WM_SETFONT, (WPARAM)hBoldFont, TRUE);
         SendMessage(open_button, WM_SETFONT, (WPARAM)hFont, TRUE);
         SendMessage(status_bar, WM_SETFONT, (WPARAM)hFont, TRUE);
-        SendMessage(file_path_text, WM_SETFONT, (WPARAM)hFont, TRUE);
 
         InvalidateRect(label, nullptr, FALSE);
         InvalidateRect(file_path_text, nullptr, FALSE);
@@ -260,10 +285,10 @@ namespace unpaker
                                     version_len);
                 MultiByteToWideChar(CP_UTF8, 0, date_str.c_str(), -1, date_wide.data(), date_len);
 
-                std::wstring about_text = L"unPAKer v";
+                std::wstring about_text = L"unPAKer ";
                 about_text += version_wide.data();
-                about_text += L"\n\nGame Resource Archive Extractor\n\nAuthor: "
-                              L"mxtherfxcker\n\nLicense: MIT\n\nBuilt on ";
+                about_text += L"\n\nGame Resource Archive Extractor\nAuthor: "
+                              L"mxtherfxcker\nLicense: MIT\n\nBuilt on ";
                 about_text += date_wide.data();
                 MessageBoxW(main_window, about_text.c_str(), L"About unPAKer",
                             MB_OK | MB_ICONINFORMATION);
@@ -355,20 +380,24 @@ namespace unpaker
         {
             int new_width = LOWORD(lparam);
             int new_height = HIWORD(lparam);
+            int padding = 15;
+            int toolbar_height = 50;
 
             if (tree_view)
             {
-                MoveWindow(tree_view, 10, 50, 380, new_height - 70, TRUE);
+                MoveWindow(tree_view, padding, toolbar_height + padding, 450, 
+                          new_height - toolbar_height - 60, TRUE);
                 InvalidateRect(tree_view, nullptr, FALSE);
             }
             if (info_text)
             {
-                MoveWindow(info_text, 400, 50, new_width - 410, new_height - 70, TRUE);
+                MoveWindow(info_text, padding + 460, toolbar_height + padding, 
+                          new_width - 490, new_height - toolbar_height - 60, TRUE);
                 InvalidateRect(info_text, nullptr, FALSE);
             }
             if (status_bar)
             {
-                MoveWindow(status_bar, 0, new_height - 20, new_width, 20, TRUE);
+                MoveWindow(status_bar, 0, new_height - 25, new_width, 25, TRUE);
                 InvalidateRect(status_bar, nullptr, FALSE);
             }
 
@@ -526,7 +555,7 @@ namespace unpaker
             tvinsert.hInsertAfter = TVI_LAST;
             tvinsert.item.mask = TVIF_TEXT;
 
-            static std::vector<wchar_t> wide_buffer(MAX_PATH * 2);
+            std::vector<wchar_t> wide_buffer(MAX_PATH * 2);
 
             const char *root_name = root->name.empty() ? "Archive" : root->name.c_str();
             int root_len = MultiByteToWideChar(CP_UTF8, 0, root_name, -1, NULL, 0);
@@ -651,39 +680,22 @@ namespace unpaker
 
         if (!is_supported)
         {
-            static wchar_t msg_buffer[512];
-            int len = swprintf_s(msg_buffer, sizeof(msg_buffer) / sizeof(wchar_t),
-                                 L"[Unsupported format: .%hs]\n Supported: .txt, .cfg, .ini, .md, "
-                                 L".log, .conf, .config, .properties, .xml, .json",
-                                 ext_ptr);
-            if (len > 0)
-            {
-                msg_buffer[len] = L'\0';
-                SetWindowTextW(info_text, msg_buffer);
-            }
-            else
-            {
-                SetWindowTextW(info_text, L"[Unsupported file format]");
-            }
+            std::wstring msg = L"[Unsupported format: .";
+            std::wstring ext_wide(ext_ptr, ext_ptr + std::min(strlen(ext_ptr), size_t(50)));
+            msg += ext_wide;
+            msg += L"]\n Supported: .txt, .cfg, .ini, .md, .log, .conf, .config, "
+                   L".properties, .xml, .json";
+            SetWindowTextW(info_text, msg.c_str());
             return;
         }
 
-        const size_t MAX_PREVIEW_SIZE = 1024 * 1024; // 1MB
+        const size_t MAX_PREVIEW_SIZE = 1024 * 1024;
         if (file->size > MAX_PREVIEW_SIZE)
         {
-            static wchar_t size_msg[256];
-            int len = swprintf_s(size_msg, sizeof(size_msg) / sizeof(wchar_t),
-                                 L"[File too large for preview: %u MB (max 1 MB)]",
-                                 static_cast<unsigned int>(file->size / 1024 / 1024));
-            if (len > 0)
-            {
-                size_msg[len] = L'\0';
-                SetWindowTextW(info_text, size_msg);
-            }
-            else
-            {
-                SetWindowTextW(info_text, L"[File too large for preview]");
-            }
+            double sizeMB = static_cast<double>(file->size) / (1024.0 * 1024.0);
+            wchar_t size_buffer[64];
+            swprintf_s(size_buffer, 64, L"[File too large for preview: %.2f MB (max 1 MB)]", sizeMB);
+            SetWindowTextW(info_text, size_buffer);
             return;
         }
 
@@ -931,6 +943,28 @@ namespace unpaker
             hFont = nullptr;
         }
 
+        if (hBoldFont)
+        {
+            HFONT stockFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+            if (hBoldFont != stockFont)
+            {
+                DeleteObject(hBoldFont);
+            }
+            hBoldFont = nullptr;
+        }
+
+        if (hBackgroundBrush)
+        {
+            DeleteObject(hBackgroundBrush);
+            hBackgroundBrush = nullptr;
+        }
+
+        if (hControlBrush)
+        {
+            DeleteObject(hControlBrush);
+            hControlBrush = nullptr;
+        }
+
         UnregisterClassW(L"unPAKerWindowClass", GetModuleHandle(nullptr));
         parser = nullptr;
         Logger::instance().info("GUI shutdown complete");
@@ -952,16 +986,45 @@ namespace unpaker
 
             if (msg.message == WM_KEYDOWN)
             {
-                if (GetKeyState(VK_CONTROL) & 0x8000)
+                // F1 - About
+                if (msg.wParam == VK_F1)
                 {
-                    if (msg.wParam == 'O' || msg.wParam == 'o')
+                    PostMessage(main_window, WM_COMMAND, 1003, 0);
+                    continue;
+                }
+
+                // Ctrl+O - Open
+                if ((GetKeyState(VK_CONTROL) & 0x8000) && (msg.wParam == 'O' || msg.wParam == 'o'))
+                {
+                    handle_open_file();
+                    continue;
+                }
+
+                // Ctrl+Q - Quit
+                if ((GetKeyState(VK_CONTROL) & 0x8000) && (msg.wParam == 'Q' || msg.wParam == 'q'))
+                {
+                    PostQuitMessage(0);
+                    continue;
+                }
+
+                // Ctrl+A - Select All in info_text
+                if ((GetKeyState(VK_CONTROL) & 0x8000) && (msg.wParam == 'A' || msg.wParam == 'a'))
+                {
+                    HWND focused = GetFocus();
+                    if (focused == info_text)
                     {
-                        handle_open_file();
+                        SendMessage(info_text, EM_SETSEL, 0, -1);
                         continue;
                     }
-                    else if (msg.wParam == 'Q' || msg.wParam == 'q')
+                }
+
+                // PageUp/PageDown in info_text
+                if (msg.wParam == VK_PRIOR || msg.wParam == VK_NEXT)
+                {
+                    HWND focused = GetFocus();
+                    if (focused == info_text)
                     {
-                        PostQuitMessage(0);
+                        SendMessage(info_text, msg.message, msg.wParam, msg.lParam);
                         continue;
                     }
                 }
@@ -1462,7 +1525,7 @@ namespace unpaker
         std::wstring title;
         UINT icon;
 
-        if (!isUpToDate)
+        if (isUpToDate)
         {
             message = L"You are using the latest version.\n\n";
             message += L"Current version: ";

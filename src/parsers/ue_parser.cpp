@@ -141,8 +141,8 @@ namespace unpaker::parsers
 
             entry->name = path;
             entry->path = path;
-            entry->offset = static_cast<uint32_t>(offset);
-            entry->size = static_cast<uint32_t>(size);
+            entry->offset = offset;
+            entry->size = size;
             entry->archive_index = 0x7fff;
             entry->is_directory = false;
 

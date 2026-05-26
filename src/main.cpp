@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     unpaker::Logger::instance().initialize(dev_mode);
 
     unpaker::Logger::instance().info("========================================");
-    unpaker::Logger::instance().info(std::string("unPAKer v") + UNPAKER_VERSION);
+    unpaker::Logger::instance().info(std::string("unPAKer ") + UNPAKER_VERSION);
     unpaker::Logger::instance().info("Game Resource Archive Extractor");
     unpaker::Logger::instance().info(std::string("Author: ") + UNPAKER_AUTHOR);
     unpaker::Logger::instance().info(std::string("License: ") + UNPAKER_LICENSE);
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
     unpaker::GuiManager gui;
 
-    if (!gui.initialize(1200, 700, std::string("unPAKer v" UNPAKER_VERSION)))
+    if (!gui.initialize(1200, 700, std::string("unPAKer " UNPAKER_VERSION)))
     {
         unpaker::Logger::instance().error("Failed to initialize GUI");
         return 1;

@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-v1--dev2-blue.svg)](https://github.com/mxtherfxcker/unpaker/releases/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/mxtherfxcker/unPAKer/blob/master/LICENSE)
 [![Language](https://img.shields.io/badge/language-C%2B%2B17-red.svg)](https://web.archive.org/web/20171202203127/https://www.iso.org/standard/68564.html)
-[![Status](https://img.shields.io/badge/status-Freeze-blue.svg)]()
+[![Status](https://img.shields.io/badge/status-Development-blue.svg)]()
 
 Open-source game resource archive extractor. Analyze and extract contents from `.pak` archives used in various game engines.
 
@@ -20,7 +20,7 @@ Open-source game resource archive extractor. Analyze and extract contents from `
 | Format | Engine | Status |
 |--------|--------|--------|
 | UE3 PAK | Unreal Engine 3 | ❌ Coming in `v1.2-stable` |
-| PCK | Godot 4.6+ | ❌ Coming in `v1.2-stable` |
+| PCK | Godot 4.7 | ❌ Coming in `v1.2-stable` |
 | UE4/5 PAK | Unreal Engine 4/5 | ❌ Coming in `v1.2-stable` |
 | VPK | Source Engine | ✅ Read |
 | Generic PAK | Other | ❌ Coming in `v1.2-stable` |
@@ -37,7 +37,7 @@ Open-source game resource archive extractor. Analyze and extract contents from `
 
 git clone https://github.com/mxtherfxcker/unPAKer.git
 cd unPAKer && mkdir build && cd build
-cmake .. -G "Visual Studio 17 2022" -A x64
+cmake ..
 cmake --build . --config Release
 
 ```
@@ -47,6 +47,11 @@ For enable **debugging** in the console and log file:
 
 cmake --build . --config Debug
 
+```
+For **enable/disable console** (accepts arguments OFF or ON):
+
+```cmd
+cmake .. -DENABLE_CONSOLE=
 ```
 
 ## Roadmap

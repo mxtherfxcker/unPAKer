@@ -45,7 +45,17 @@ namespace unpaker
             m_mutex_handle = CreateMutexA(nullptr, FALSE, unique_id);
             if (!m_mutex_handle)
             {
-                std::cerr << "[ERROR] Failed to create instance mutex" << std::endl;
+                DWORD error = GetLastError();
+                if (error == ERROR_ALREADY_EXISTS)
+                {
+                    std::cerr << "[ERROR] Another instance of unPAKer is already running"
+                              << std::endl;
+                }
+                else
+                {
+                    std::cerr << "[ERROR] Failed to create instance mutex (error: " << error
+                              << ")" << std::endl;
+                }
                 return false;
             }
 

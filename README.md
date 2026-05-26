@@ -20,16 +20,16 @@ Open-source game resource archive extractor. Analyze and extract contents from `
 | Format | Engine | Status |
 |--------|--------|--------|
 | UE3 PAK | Unreal Engine 3 | ❌ Coming in `v1.2-stable` |
-| PCK | Godot 4.6 | ❌ Coming in `v1.2-stable` |
+| PCK | Godot 4.7 | ❌ Coming in `v1.2-stable` |
 | UE4/5 PAK | Unreal Engine 4/5 | ❌ Coming in `v1.2-stable` |
 | VPK | Source Engine | ✅ Read |
-| Generic PAK | Other Engines | ❌ Coming in `v1.2-stable` |
+| Generic PAK | Other | ❌ Coming in `v1.2-stable` |
 
 ## Requirements
 
 - *Windows 10/11*
 - *C++17 compiler* (MSVC 2019+, GCC 8+, Clang 8+)
-- *CMake 3.21+*
+- *CMake 3.22+*
 
 ## Build on Windows
 
@@ -64,7 +64,6 @@ cmake .. -DENABLE_CONSOLE=
 	- [x] Text files (`.vpk` only yet)
 	- [ ] Audio files
 	- [ ] Models and textures (coming in `v2.1-stable`)
-	- [ ] Other supported files (coming in `v2.5-stable`)
 
 - [ ] Extract files (coming in `v1-stable`)
 - [ ] Import and edit files (coming in `v3-stable`)
@@ -73,7 +72,3 @@ cmake .. -DENABLE_CONSOLE=
 
 - 🐛 Issues: [GitHub Issues](https://github.com/mxtherfxcker/unPAKer/issues)
 - ✉️ Email: [ceyoynxy35@gmail.com](mailto:ceyoynxy35@gmail.com)
-
----
-
-**Made with ❤️ by mxtherfxcker**
